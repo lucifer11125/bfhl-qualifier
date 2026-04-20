@@ -2,6 +2,11 @@
 
 This is a Spring Boot application created for the Bajaj Finserv Health MIT Java Qualifier.
 
+## Submission Links
+- **Public GitHub Repo**: https://github.com/lucifer11125/bfhl-qualifier.git
+- **Public JAR File Link**: https://github.com/lucifer11125/bfhl-qualifier/raw/main/target/bfhl-qualifier-0.0.1-SNAPSHOT.jar
+- **RAW Downloadable GitHub Link to JAR**: https://raw.githubusercontent.com/lucifer11125/bfhl-qualifier/main/target/bfhl-qualifier-0.0.1-SNAPSHOT.jar
+
 ## Functionality
 - Generates a webhook by sending a dynamic POST request to the API with candidate details.
 - Reads the Webhook and JWT bearer token from the API response.
