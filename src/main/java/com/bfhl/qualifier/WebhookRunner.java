@@ -15,33 +15,29 @@ public class WebhookRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        System.out.println("====== [START] Application initialized. Executing task... ======");
         RestTemplate restTemplate = new RestTemplate();
         
-        // 1. Generate Webhook
+        // 1. On app startup, send this POST request:
         String generateUrl = "https://bfhldevapigw.healthrx.co.in/hiring/generateWebhook/JAVA";
         
         Map<String, String> requestBody = new HashMap<>();
-        requestBody.put("name", "Harsh"); // You can modify this
+        requestBody.put("name", "John Doe");
         requestBody.put("regNo", "0416");
-        requestBody.put("email", "john@example.com"); // Replaced with dummy, you can update before running if required
+        requestBody.put("email", "john@example.com");
         
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         
         HttpEntity<Map<String, String>> request = new HttpEntity<>(requestBody, headers);
-        
-        System.out.println("-> Sending POST to " + generateUrl);
         ResponseEntity<Map> response = restTemplate.postForEntity(generateUrl, request, Map.class);
         
+        // 2. You will receive a 'webhook' URL and an 'accessToken'
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
             Map body = response.getBody();
-            System.out.println("<- Received response: " + body);
+            String webhookUrl = (String) body.get("webhook");
+            String accessToken = (String) body.get("accessToken");
             
-            String accessToken = (String) body.getOrDefault("accessToken", "");
-            String webhookUrl = (String) body.getOrDefault("webhook", "https://bfhldevapigw.healthrx.co.in/hiring/testWebhook/JAVA");
-            
-            // 2. Submit SQL query solution
+            // 3 & 4. Submit your solution (the final SQL query)
             String finalQuery = 
                 "SELECT e1.EMP_ID, e1.FIRST_NAME, e1.LAST_NAME, d.DEPARTMENT_NAME, " +
                 "(SELECT COUNT(*) FROM EMPLOYEE e2 WHERE e2.DEPARTMENT = e1.DEPARTMENT AND e2.DOB > e1.DOB) AS YOUNGER_EMPLOYEES_COUNT " +
@@ -52,26 +48,10 @@ public class WebhookRunner implements CommandLineRunner {
             
             HttpHeaders submitHeaders = new HttpHeaders();
             submitHeaders.setContentType(MediaType.APPLICATION_JSON);
-            submitHeaders.set("Authorization", accessToken); // Instructions say use as JWT token
+            submitHeaders.set("Authorization", accessToken);
             
             HttpEntity<Map<String, String>> submitRequest = new HttpEntity<>(submitBody, submitHeaders);
-            
-            System.out.println("-> Submitting final SQL query to " + webhookUrl);
-            System.out.println("   Query: " + finalQuery);
-            
-            try {
-                if (!webhookUrl.startsWith("http")) { // Safety check
-                    webhookUrl = "https://bfhldevapigw.healthrx.co.in/hiring/testWebhook/JAVA";
-                }
-                ResponseEntity<String> submitResponse = restTemplate.postForEntity(webhookUrl, submitRequest, String.class);
-                System.out.println("<- Submission Response Status: " + submitResponse.getStatusCode());
-                System.out.println("<- Submission Response Body: " + submitResponse.getBody());
-                System.out.println("====== [SUCCESS] Task complete! ======");
-            } catch (Exception e) {
-                System.err.println("====== [ERROR] Failed to submit solution: " + e.getMessage() + " ======");
-            }
-        } else {
-            System.err.println("====== [ERROR] Failed to generate webhook! Status: " + response.getStatusCode() + " ======");
+            restTemplate.postForEntity(webhookUrl, submitRequest, String.class);
         }
     }
 }
